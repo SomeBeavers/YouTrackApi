@@ -1,0 +1,80 @@
+﻿@page "/issue-chart"
+@using System.Net.Http.Headers
+@using CoreApp
+@using OxyPlot
+@using OxyPlot.Blazor
+@using OxyPlot.Series
+@inject HttpClient client
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Issue Chart</PageTitle>
+
+<h3>Issue Chart</h3>
+
+@if (ChartModel != null)
+{
+	<div style="width: 800px; height: 600px;">
+		<p>AAA</p>
+		<BlazorPlotView Model="ChartModel" Width="800" Height="600"/>
+        <BlazorPlotView Model="TestModel"></BlazorPlotView>
+	</div>
+}
+else
+{
+	<p><em>Loading...</em></p>
+}
+@code {
+    private PlotModel ChartModel { get; set; }
+    private PlotModel TestModel { get; set; }
+    private Dictionary<string, int> IssueTypeCounts { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var queries = new GetIssues(client);
+        GenerateChart(await queries.GetIssuesByTypeAsync());
+        //GenerateTestChart();
+    }
+
+    private void GenerateChart(Dictionary<string, int> issueTypeCounts)
+    {
+        ChartModel = new PlotModel { Title = "Issue Type Distribution" };
+
+        var pieSeries = new PieSeries
+        {
+            StrokeThickness = 2.0,
+            InsideLabelPosition = 0.8,
+            AngleSpan = 360,
+            StartAngle = 0,
+        };
+
+        foreach (var kvp in issueTypeCounts)
+        {
+            pieSeries.Slices.Add(new PieSlice(kvp.Key, kvp.Value) { IsExploded = false });
+        }
+
+        ChartModel.Series.Add(pieSeries);
+        IssueTypeCounts = issueTypeCounts;
+    }
+
+    private void GenerateTestChart()
+    {
+	    ChartModel = new PlotModel { Title = "Issue Type Distribution" };
+
+	    var pieSeries = new PieSeries
+	    {
+		    StrokeThickness = 2.0,
+		    InsideLabelPosition = 0.8,
+		    AngleSpan = 360,
+		    StartAngle = 0,
+	    };
+
+	    // Test data
+	    pieSeries.Slices.Add(new PieSlice("Bug", 40) { IsExploded = true });
+	    pieSeries.Slices.Add(new PieSlice("Feature", 30) { IsExploded = true });
+	    pieSeries.Slices.Add(new PieSlice("Improvement", 20) { IsExploded = true });
+	    pieSeries.Slices.Add(new PieSlice("Task", 10) { IsExploded = true });
+
+	    ChartModel.Series.Add(pieSeries);
+    }
+}

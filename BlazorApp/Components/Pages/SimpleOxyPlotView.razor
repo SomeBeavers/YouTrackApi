@@ -1,0 +1,48 @@
+﻿@page "/simple-oxyplot"
+@using OxyPlot
+@using OxyPlot.Series
+@using OxyPlot.Blazor
+@rendermode InteractiveServer
+
+<PageTitle>Simple OxyPlot View</PageTitle>
+
+<h3>Simple OxyPlot View</h3>
+
+@if (ChartModel != null)
+{
+	<OxyPlot.Blazor.BlazorPlotView Model="ChartModel" Width="800" Height="600" />
+}
+else
+{
+	<p><em>Loading...</em></p>
+}
+
+@code {
+	private PlotModel ChartModel { get; set; }
+
+	protected override void OnInitialized()
+	{
+		GenerateChart();
+	}
+
+	private void GenerateChart()
+	{
+		ChartModel = new PlotModel { Title = "Simple Line Chart" };
+
+		var lineSeries = new LineSeries
+		{
+			Title = "Test Data",
+			MarkerType = MarkerType.Circle
+		};
+
+		// Adding test data points
+		lineSeries.Points.Add(new DataPoint(0, 0));
+		lineSeries.Points.Add(new DataPoint(10, 18));
+		lineSeries.Points.Add(new DataPoint(20, 12));
+		lineSeries.Points.Add(new DataPoint(30, 8));
+		lineSeries.Points.Add(new DataPoint(40, 15));
+		lineSeries.Points.Add(new DataPoint(50, 10));
+
+		ChartModel.Series.Add(lineSeries);
+	}
+}

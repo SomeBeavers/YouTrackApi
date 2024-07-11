@@ -1,0 +1,116 @@
+﻿@page "/weather"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+	<DemoContainer>
+		<Button class="mb-2" OnClick=UpdateChartSeries BackgroundColor="TablerColor.Primary">Update Series</Button>
+
+		@if (forecasts != null)
+		{
+			<ApexChart TItem="WeatherForecast"
+			           @ref="chart"
+			           Options="options">
+
+				<ApexPointSeries TItem="WeatherForecast"
+				                 Items="forecasts"
+				                 Name="Temp C"
+				                 XValue="@(e => e.Summary)"
+				                 YValue="@(e => e.TemperatureC)"
+				                 SeriesType="SeriesType.Donut" />
+			</ApexChart>
+		}
+	</DemoContainer>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+	private List<WeatherForecast>? forecasts;
+    private ApexChart<WeatherForecast> chart;
+    private ApexChartOptions<WeatherForecast> options = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+	    options.DataLabels = new DataLabels
+	    {
+		    Enabled = true
+		    // Formatter = "function(val, opts) { return opts.w.globals.labels[opts.seriesIndex] + ': ' + val }"
+	    };
+	    await LoadDataAsync(2); // get small sample first
+
+	    await base.OnInitializedAsync();
+
+    }
+    private async Task LoadDataAsync(int? limit)
+    {
+	    // Simulate asynchronous loading to demonstrate streaming rendering
+	    await Task.Delay(500);
+
+	    var startDate = DateOnly.FromDateTime(DateTime.Now);
+	    var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+		List<WeatherForecast> tempForecast = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+	    {
+		    Date = startDate.AddDays(index),
+		    TemperatureC = Random.Shared.Next(-20, 55),
+		    Summary = summaries[Random.Shared.Next(summaries.Length)]
+	    }).ToList();
+
+	    List<WeatherForecast> groupedData = tempForecast.GroupBy(x => x.Summary)
+		    .Select(x => new WeatherForecast()
+		    {
+			    Date = x.First().Date,
+			    Summary = x.First().Summary,
+			    TemperatureC = x.Sum(y => Math.Abs(y.TemperatureC)) // easier to compare with positive values
+		    })
+		    .ToList();
+
+	    forecasts = limit.HasValue
+		    ? groupedData.Take(limit.Value).ToList()
+		    : groupedData.ToList();
+    }
+
+    private async Task UpdateChartSeries()
+    {
+	    await LoadDataAsync(null); // get full sample on update
+	    await chart.UpdateOptionsAsync(true, true, false);
+    }
+
+    private class WeatherForecast
+    {
+        public DateOnly Date { get; set; }
+        public int TemperatureC { get; set; }
+        public string? Summary { get; set; }
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}
