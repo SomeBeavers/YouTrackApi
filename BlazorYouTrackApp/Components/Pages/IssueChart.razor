@@ -10,21 +10,20 @@
 
 @if (IssueTypeCounts != null)
 {
-@* 	<div style="width: 800px; height: 600px;"> *@
-		<p>AAA</p>
-		<ApexChart TItem="Data"
-		           Options="@options">
+	@* 	<div style="width: 800px; height: 600px;"> *@
+	<p>AAA</p>
+	<ApexChart TItem="Data"
+	           Options="@options">
 
-			<ApexPointSeries TItem="Data"
-			                 Items="IssueTypeCounts"
-			                 XValue="@(e => e.Type)"
-			                 YValue="@(e => e.Count)"
-							 OrderByDescending="point => point.Y"
-			                 SeriesType="SeriesType.Donut"
-			                 ShowDataLabels="true"
-			/>
-		</ApexChart>
-@* 	</div> *@
+		<ApexPointSeries TItem="Data"
+		                 Items="IssueTypeCounts"
+		                 XValue="@(e => e.Type)"
+		                 YValue="@(e => e.Count)"
+		                 OrderByDescending="point => point.Y"
+		                 SeriesType="SeriesType.Donut"
+		                 ShowDataLabels="true"/>
+	</ApexChart>
+	@* 	</div> *@
 }
 else
 {
@@ -37,7 +36,12 @@ else
 
 	private List<Data> IssueTypeCounts { get; set; }
 	private ApexChart<Data> chart = new();
-	private ApexChartOptions<Data> options { get; } = new();
+	private ApexChartOptions<Data> options { get; } = new() { Chart = new Chart
+	{
+		Width = 800, 
+		Height = 800,
+		
+	} };
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -45,7 +49,7 @@ else
 		GenerateChart(await queries.GetIssuesByTypeAsync());
 		ConfigureChatOptions();
 
-		//await chart.UpdateOptionsAsync(true, true, false);
+		await chart.UpdateOptionsAsync(true, true, false);
 	}
 
 	private void ConfigureChatOptions()
@@ -54,7 +58,7 @@ else
 		{
 			Pie = new PlotOptionsPie
 			{
-				DataLabels = new PieDataLabels()
+				DataLabels = new PieDataLabels
 				{
 					MinAngleToShowLabel = 0
 				},
@@ -63,11 +67,9 @@ else
 					Labels = new DonutLabels
 					{
 						Show = true,
-						Total = new DonutLabelTotal { FontSize="24px", Color = "#D807B8", Formatter = @"function (w) {return w.globals.seriesTotals.reduce((a, b) => { return (a + b) }, 0)}" }
-					},
-
+						Total = new DonutLabelTotal { FontSize = "24px", Color = "#D807B8", Formatter = @"function (w) {return w.globals.seriesTotals.reduce((a, b) => { return (a + b) }, 0)}" }
+					}
 				}
-
 			}
 		};
 		options.DataLabels = new DataLabels
@@ -79,38 +81,91 @@ else
 		options.Legend = new Legend
 		{
 			Position = LegendPosition.Right,
-			FontSize = "16px",
-
+			FontSize = "16px"
 		};
-		// options.Annotations = new Annotations()
-		// {
-		// 	Points = IssueTypeCounts.Select((data, index) => new AnnotationsPoint()
-		// 	{
-		// 		Label = new Label()
-		// 		{
-		// 			Text = data.Type,
-		// 			Position = LabelPosition.Right
-		// 		},
 
-		// 		X = CalculateAnnotationXPosition(index, IssueTypeCounts.Count),
-		// 		Y = CalculateAnnotationYPosition(index, IssueTypeCounts.Count),
-		// 	}).ToList()
-		// };
+		options.Annotations = new Annotations()
+		{
+			Yaxis = new List<AnnotationsYAxis>()
+			{
+				new AnnotationsYAxis()
+				{
+					Label = new Label(){
+						Text = "X-axis annotation",
+						BorderColor = "#00E396",
+						Style = new Style()
+						{
+							Background = "#00E396",
+							Color = "#fff",
+							FontSize = "12px",
+						}
+					},
+				}
+			},
+			Xaxis = new List<AnnotationsXAxis>()
+			{
+				new AnnotationsXAxis()
+				{
+					Label = new Label(){
+						Text = "X-axis annotation",
+						BorderColor = "#00E396",
+						Style = new Style()
+						{
+							Background = "#00E396",
+							Color = "#fff",
+							FontSize = "12px",
+						}
+					},
+				},
+				},
 
-		options.Theme = new Theme() { Palette = PaletteType.Palette5 };
-		var apexChartOptions = options;
+			// Points = IssueTypeCounts.Select((data, index) => new AnnotationsPoint()
+			// {
+			// 	Label = new Label()
+			// 	{
+			// 		Text = data.Type,
+			// 		Position = LabelPosition.Right
+			// 	},
+
+			// 	X = CalculateAnnotationXPosition(index, IssueTypeCounts.Count),
+			// 	Y = CalculateAnnotationYPosition(index, IssueTypeCounts.Count),
+			// }).ToList(),
+			// Points =
+			// [
+			// 	new()
+			// 	{
+			// 		Label = new Label()
+			// 		{
+			// 			Text = "Test",
+			// 			Position = LabelPosition.Right,
+			// 			Style = new Style()
+			// 			{
+			// 				Background = "#FF4560",
+			// 				Color = "#fff",
+			// 				FontSize = "60px",
+			// 			}
+			// 		},
+			// 		X = "Bug",
+			// 		Y = 735
+			// 	}
+			// ]
+		};
+
+		options.Theme = new Theme { Palette = PaletteType.Palette1 };
+
 	}
+
 	private double CalculateAnnotationXPosition(int index, int totalCount)
 	{
 		// Logic to calculate X position based on the index and total count
-		double angle = (360.0 / totalCount) * index;
+		var angle = 360.0 / totalCount * index;
 		return 50 + 40 * Math.Cos(angle * Math.PI / 180); // Adjust as needed
 	}
 
 	private double CalculateAnnotationYPosition(int index, int totalCount)
 	{
 		// Logic to calculate Y position based on the index and total count
-		double angle = (360.0 / totalCount) * index;
+		var angle = 360.0 / totalCount * index;
 		return 50 + 40 * Math.Sin(angle * Math.PI / 180); // Adjust as needed
 	}
 
@@ -125,4 +180,5 @@ else
 		public string Type { get; set; }
 		public int Count { get; set; }
 	}
+
 }

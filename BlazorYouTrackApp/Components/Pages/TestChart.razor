@@ -2,7 +2,8 @@
 @rendermode InteractiveServer
 
 <ApexChart TItem="MyData"
-           Title="Sample Data">
+           Title="Sample Data",
+           Options=options>
 
 	<ApexPointSeries TItem="MyData"
 	                 Items="Data"
@@ -21,8 +22,32 @@
     
 @code {
 	private List<MyData> Data { get; set; } = new();
+	public ApexChartOptions<MyData> options { get; set; } = new();
+
 	protected override void OnInitialized()
 	{
+		options.Annotations = new Annotations()
+		{
+			Points =
+			[
+				new()
+				{
+					Label = new Label()
+					{
+						Text = "Jan",
+						Position = LabelPosition.Right,
+						Style = new Style()
+						{
+							Background = "#FF4560",
+							Color = "#fff",
+							FontSize = "30px",
+						}
+					},
+					X = 500,
+					Y = 500
+				}
+			]
+		};
 		Data.Add(new MyData { Category = "Jan", NetProfit = 12, Revenue = 33 });
 		Data.Add(new MyData { Category = "Feb", NetProfit = 43, Revenue = 42 });
 		Data.Add(new MyData { Category = "Mar", NetProfit = 112, Revenue = 23 });
